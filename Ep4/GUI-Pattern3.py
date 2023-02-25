@@ -52,7 +52,7 @@ L2.place(x=140,y=50)
 
 ##########DIAMETER INPUT#########
 L3 = Label(GUI,text='DIAMETER (mm.)',font=FONT4 ,fg='green')
-L3.place(x=100,y=400)
+L3.place(x=100,y=405)
 
 v_diameter = StringVar()
 E1 = ttk.Entry(GUI,textvariable = v_diameter, font=FONT2, width=10)
@@ -60,7 +60,7 @@ E1.place(x=100,y=440)
 
 ##########RAIDAL INPUT#########
 L4 = Label(GUI,text='RADIAL (mm.)',font=FONT4 ,fg='green')
-L4.place(x=300,y=400)
+L4.place(x=300,y=405)
 
 v_radius = StringVar()
 E2 = ttk.Entry(GUI,textvariable = v_radius, font=FONT2, width=10)
@@ -81,6 +81,8 @@ def Calculate():
         bd1r = []
         pcur = []
         pbas = []
+        pbasR = []
+        pcurR = []
         pi = 3.14159
         w36 = pi * diameter / 36
         rd = diameter / 2.0
@@ -111,26 +113,57 @@ def Calculate():
         mlst2()
 
         bd4 = bd3
+        ###########Draw Left 1 - 19############################
         def drawpl(): 
               acad = Autocad()
-              acad.prompt("Hello, Autocad from Python\n")
+              acad.prompt("Hello, Autocad Drawing Pattern Elbow from Python\n")
+              num = 0
               p1 = APoint(0, 0)
+              p1t = APoint(0, -3.5)
               for i in bd3:
+                    text = acad.model.AddText(str(num), p1t, 2.5)
                     p2 = APoint(p1[0], p1[1] + i)
                     acad.model.AddLine(p1, p2)
                     pbas.append(p1)
                     p1 = APoint(p2[0] + w36, p1[1])
+                    p1t = APoint(p2[0] + w36, p1t[1])
                     pcur.append(p2)
-
-        def drawcur():
+                    num = 1 + num
+        ###########Draw Right 20 - 36############################
+        def drawpr(): 
+              acad = Autocad()
+              num = 18
+              bd3R = list(reversed(bd3))
+              p1 = APoint(w36 * 18, 0)
+              p1t = APoint(p1[0], -3.5)
+              for i in bd3R:
+                    text = acad.model.AddText(str(num), p1t, 2.5)
+                    p2 = APoint(p1[0], p1[1] + i)
+                    acad.model.AddLine(p1, p2)
+                    pbasR.append(p1)
+                    p1 = APoint(p2[0] + w36, p1[1])
+                    p1t = APoint(p2[0] + w36, p1t[1])
+                    pcurR.append(p2)
+                    num = 1 + num
+        ###########Draw Curve Left##############
+        def drawcurL():
               acad = Autocad()
               p1 = APoint(0, 0)
               for x in pcur:
                     p2 = APoint(x)
                     acad.model.Addline(p1, p2)
                     p1 = p2
-
-        def drawbas():
+        
+        ###########Draw Curve Right#############
+        def drawcurR():
+              acad = Autocad()
+              p1 = APoint(pcurR[0])
+              for x in pcurR:
+                    p2 = APoint(x)
+                    acad.model.Addline(p1, p2)
+                    p1 = p2       
+        #############Draw Base line Left#############
+        def drawbasL():
               acad = Autocad()
               p1 = APoint(0, 0)
               for x in pbas:
@@ -138,42 +171,48 @@ def Calculate():
                     acad.model.Addline(p1, p2)
                     p1 = p2
 
+        #############Draw Base line Left#############
+        def drawbasR():
+              acad = Autocad()
+              p1 = APoint(0, 0)
+              for x in pbasR:
+                    p2 = APoint(x)
+                    acad.model.Addline(p1, p2)
+                    p1 = p2
+
+       
         def SaveData():
                t = datetime.now().strftime('%d-%m-%y %H:%M:%S')
                bd4.insert(0, t)
                writecsv(bd4) #บันทึกลง csv
-               
+
         drawpl()
-        drawcur()
-        drawbas()
+        drawpr()
+        drawcurL()
+        drawcurR()
+        drawbasL()
+        drawbasR()
         SaveData()
+
         data = readcsv()
         for row in data:
               log_text.insert(END, "\n")
               log_text.insert(END, row)
               log_text.insert(END, "\n")
-        
-        drawpl()
 
-  
     except:
            messagebox.showwarning('กรุณากรอกตัวเลข','กรุณากรอกตัวเลขรัศมีวงกลม')
-           v_diameter.set('')
-           v_radius.set('')
+           v_diameter.set()
+           v_radius.set()
            #v_diameter.focus()
            #v_radius.focus()
-        
-
+    
   
 ###############
 FB1 = Frame(GUI)#หน้ากระดาน
 FB1.place(x=215,y=480)
 B2 = ttk.Button(FB1, text='Calculate',command=Calculate)
 B2.pack(ipadx=30, ipady=10)
-
-####################DRAW ACAD#################
-
-
 
 ################## แสดง Read CSV ด้านล่าง###############################
 
